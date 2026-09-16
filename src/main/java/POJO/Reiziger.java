@@ -31,9 +31,6 @@ public class Reiziger {
     @OneToOne(mappedBy = "reiziger")
     private Adres adres;
 
-    /*
-     * Verplicht voor Hibernate/JPA.
-     */
     public Reiziger() {
     }
 

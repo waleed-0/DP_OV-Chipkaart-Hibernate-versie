@@ -76,7 +76,9 @@ public class ReizigerDAOPsql implements ReizigerDAO {
             }
 
             reiziger.getAdres()
-                    .setReiziger(reiziger);
+                    .setReiziger(
+                            reiziger
+                    );
 
             if (adao == null) {
                 return false;
@@ -89,6 +91,7 @@ public class ReizigerDAOPsql implements ReizigerDAO {
         } catch (SQLException e) {
 
             e.printStackTrace();
+
             return false;
         }
     }
@@ -152,25 +155,18 @@ public class ReizigerDAOPsql implements ReizigerDAO {
             }
 
             reiziger.getAdres()
-                    .setReiziger(reiziger);
+                    .setReiziger(
+                            reiziger
+                    );
 
-            Adres bestaandAdres =
-                    adao.findByReiziger(reiziger);
-
-            if (bestaandAdres != null) {
-
-                return adao.update(
-                        reiziger.getAdres()
-                );
-            }
-
-            return adao.save(
+            return adao.update(
                     reiziger.getAdres()
             );
 
         } catch (SQLException e) {
 
             e.printStackTrace();
+
             return false;
         }
     }
@@ -184,22 +180,22 @@ public class ReizigerDAOPsql implements ReizigerDAO {
 
         try {
 
+            if (reiziger.getAdres() != null) {
 
-            if (adao != null) {
+                if (adao == null) {
+                    return false;
+                }
 
-                Adres adres =
-                        adao.findByReiziger(reiziger);
+                boolean adresVerwijderd =
+                        adao.delete(
+                                reiziger.getAdres()
+                        );
 
-                if (adres != null) {
-
-                    boolean adresVerwijderd =
-                            adao.delete(adres);
-
-                    if (!adresVerwijderd) {
-                        return false;
-                    }
+                if (!adresVerwijderd) {
+                    return false;
                 }
             }
+
 
             String query =
                     "DELETE FROM reiziger " +
@@ -222,6 +218,7 @@ public class ReizigerDAOPsql implements ReizigerDAO {
         } catch (SQLException e) {
 
             e.printStackTrace();
+
             return false;
         }
     }
@@ -309,7 +306,9 @@ public class ReizigerDAOPsql implements ReizigerDAO {
 
             statement.setDate(
                     1,
-                    java.sql.Date.valueOf(datum)
+                    java.sql.Date.valueOf(
+                            datum
+                    )
             );
 
             try (ResultSet resultSet =

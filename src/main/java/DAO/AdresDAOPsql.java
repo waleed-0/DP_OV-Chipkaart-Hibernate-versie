@@ -63,12 +63,6 @@ public class AdresDAOPsql implements AdresDAO {
                     adres.getWoonplaats()
             );
 
-            /*
-             * Alleen reiziger_id gebruiken.
-             *
-             * Er wordt hier GEEN reiziger opgeslagen,
-             * gewijzigd of verwijderd.
-             */
             if (adres.getReiziger() != null) {
 
                 statement.setInt(
@@ -130,11 +124,6 @@ public class AdresDAOPsql implements AdresDAO {
                     adres.getWoonplaats()
             );
 
-            /*
-             * Alleen reiziger_id gebruiken.
-             *
-             * Er wordt hier GEEN reiziger gewijzigd.
-             */
             if (adres.getReiziger() != null) {
 
                 statement.setInt(
@@ -169,11 +158,6 @@ public class AdresDAOPsql implements AdresDAO {
             return false;
         }
 
-        /*
-         * Alleen het adres verwijderen.
-         *
-         * De Reiziger wordt NIET verwijderd.
-         */
         String query =
                 "DELETE FROM adres " +
                         "WHERE adres_id = ?";
@@ -260,10 +244,6 @@ public class AdresDAOPsql implements AdresDAO {
                                     reiziger
                             );
 
-                    /*
-                     * Relatie ook vanaf Reiziger
-                     * naar Adres vastleggen.
-                     */
                     reiziger.setAdres(
                             adres
                     );
@@ -271,10 +251,6 @@ public class AdresDAOPsql implements AdresDAO {
             }
         }
 
-        /*
-         * Pas na het sluiten van ResultSet en
-         * PreparedStatement wordt het Adres geretourneerd.
-         */
         return adres;
     }
 
@@ -285,10 +261,6 @@ public class AdresDAOPsql implements AdresDAO {
         List<Adres> adressen =
                 new ArrayList<>();
 
-        /*
-         * Zonder ReizigerDAO kunnen we geen complete
-         * Adres-objecten met Reiziger maken.
-         */
         if (rdao == null) {
             throw new IllegalStateException(
                     "ReizigerDAO is niet gekoppeld aan AdresDAOPsql."
@@ -338,18 +310,11 @@ public class AdresDAOPsql implements AdresDAO {
                                 "reiziger_id"
                         );
 
-                /*
-                 * Bij iedere rij de bijbehorende
-                 * Reiziger ophalen via ReizigerDAO.
-                 */
                 Reiziger reiziger =
                         rdao.findById(
                                 reizigerId
                         );
 
-                /*
-                 * Adres maken met de bijbehorende Reiziger.
-                 */
                 Adres adres =
                         new Adres(
                                 adresId,
@@ -360,10 +325,6 @@ public class AdresDAOPsql implements AdresDAO {
                                 reiziger
                         );
 
-                /*
-                 * De relatie ook vanaf Reiziger
-                 * naar hetzelfde Adres-object leggen.
-                 */
                 if (reiziger != null) {
 
                     reiziger.setAdres(
