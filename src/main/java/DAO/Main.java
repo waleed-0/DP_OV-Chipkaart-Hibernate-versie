@@ -1,98 +1,45 @@
 package main.java.DAO;
 
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
+
 import main.java.POJO.Adres;
 import main.java.POJO.Reiziger;
 
-import java.sql.Connection;
 import java.sql.Date;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.List;
 
 public class Main {
 
-    private static final String Url =
-            "jdbc:postgresql://localhost:5432/ovchip";
-
-    private static final String User =
-            "postgres";
-
-    private static final String Password =
-            "0000";
-
     public static void main(String[] args)
             throws SQLException {
 
-        Connection conn = getConnection();
+        EntityManagerFactory emf =
+                Persistence.createEntityManagerFactory(
+                        "ovchip"
+                );
 
-        if (conn != null) {
+        try {
 
-            AdresDAOPsql adresDAO =
-                    new AdresDAOPsql(conn);
+            ReizigerDAOHibernate reizigerDAO =
+                    new ReizigerDAOHibernate(
+                            emf
+                    );
 
-            ReizigerDAOPsql reizigerDAO =
-                    new ReizigerDAOPsql(conn);
-
-            adresDAO.setReizigerDAO(reizigerDAO);
-            reizigerDAO.setAdresDAO(adresDAO);
+            AdresDAOHibernate adresDAO =
+                    new AdresDAOHibernate(
+                            emf
+                    );
 
             testAdresDAO(
                     adresDAO,
                     reizigerDAO
             );
 
-            closeConnection(conn);
+        } finally {
 
-        } else {
-
-            System.out.println(
-                    "Er is een fout opgetreden tijdens " +
-                            "het maken van de databaseverbinding."
-            );
-        }
-    }
-
-    private static Connection getConnection() {
-
-        Connection connection = null;
-
-        try {
-
-            connection = DriverManager.getConnection(
-                    Url,
-                    User,
-                    Password
-            );
-
-            System.out.println(
-                    "Databaseverbinding is ok."
-            );
-
-        } catch (SQLException e) {
-
-            e.printStackTrace();
-        }
-
-        return connection;
-    }
-
-    private static void closeConnection(
-            Connection connection) {
-
-        if (connection != null) {
-
-            try {
-
-                connection.close();
-
-                System.out.println(
-                        "Databaseverbinding gesloten."
-                );
-
-            } catch (SQLException e) {
-
-                e.printStackTrace();
-            }
+            emf.close();
         }
     }
 
@@ -102,17 +49,44 @@ public class Main {
             throws SQLException {
 
         System.out.println(
-                "\n---------- Test AdresDAO -------------"
+                "\n---------- Test AdresDAO Hibernate -------------"
         );
 
 
-        Reiziger reiziger1 =
+        Adres bestaandAdres =
+                adresDAO.findById(
+                        9999
+                );
+
+        if (bestaandAdres != null) {
+
+            adresDAO.delete(
+                    bestaandAdres
+            );
+        }
+
+        Reiziger bestaandeReiziger =
+                reizigerDAO.findById(
+                        9999
+                );
+
+        if (bestaandeReiziger != null) {
+
+            reizigerDAO.delete(
+                    bestaandeReiziger
+            );
+        }
+
+
+        Reiziger reiziger =
                 new Reiziger(
-                        100,
+                        9999,
                         "G.",
                         null,
                         "van Rijn",
-                        Date.valueOf("2002-09-17")
+                        Date.valueOf(
+                                "2002-09-17"
+                        )
                 );
 
 
@@ -121,40 +95,46 @@ public class Main {
         );
 
         boolean reizigerOpgeslagen =
-                reizigerDAO.save(reiziger1);
+                reizigerDAO.save(
+                        reiziger
+                );
 
         System.out.println(
-                "Reiziger opgeslagen: "
-                        + reizigerOpgeslagen
+                "Reiziger opgeslagen: " +
+                        reizigerOpgeslagen
         );
 
-
-
-        Adres adres1 =
+        Adres adres =
                 new Adres(
-                        100,
+                        9999,
                         "3511 LX",
                         "37",
                         "Straatnaam 1",
                         "Utrecht",
-                        reiziger1
+                        reiziger
                 );
 
+        reiziger.setAdres(
+                adres
+        );
 
+        adres.setReiziger(
+                reiziger
+        );
 
-        reiziger1.setAdres(adres1);
-        adres1.setReiziger(reiziger1);
 
         System.out.println(
                 "\n--- Adres opslaan ---"
         );
 
         boolean adresOpgeslagen =
-                adresDAO.save(adres1);
+                adresDAO.save(
+                        adres
+                );
 
         System.out.println(
-                "Adres opgeslagen: "
-                        + adresOpgeslagen
+                "Adres opgeslagen: " +
+                        adresOpgeslagen
         );
 
 
@@ -162,33 +142,14 @@ public class Main {
                 "\n--- Adres ophalen op ID ---"
         );
 
-        Adres adresOpId =
-                adresDAO.findById(100);
+        Adres gevondenAdresOpId =
+                adresDAO.findById(
+                        9999
+                );
 
         System.out.println(
-                "Opgehaald adres: "
-                        + adresOpId
-        );
-
-
-        System.out.println(
-                "\n--- Adres wijzigen ---"
-        );
-
-        adres1.setPostcode("3521 AL");
-        adres1.setHuisnummer("6A");
-
-        boolean adresGewijzigd =
-                adresDAO.update(adres1);
-
-        System.out.println(
-                "Adres gewijzigd: "
-                        + adresGewijzigd
-        );
-
-        System.out.println(
-                "Adres: "
-                        + adresDAO.findById(100)
+                "Opgehaald adres: " +
+                        gevondenAdresOpId
         );
 
 
@@ -198,53 +159,68 @@ public class Main {
 
         Adres gevondenAdres =
                 adresDAO.findByReiziger(
-                        reiziger1
+                        reiziger
                 );
 
         System.out.println(
-                "Opgehaald adres: "
-                        + gevondenAdres
+                "Opgehaald adres: " +
+                        gevondenAdres
         );
 
 
         System.out.println(
-                "\n--- Alle adressen ---"
+                "\n--- Adres wijzigen ---"
         );
 
-        List<Adres> alleAdressen =
-                adresDAO.findAll();
+        adres.setPostcode(
+                "3521 AL"
+        );
 
-        for (Adres adres : alleAdressen) {
+        adres.setHuisnummer(
+                "6A"
+        );
 
-            System.out.println(adres);
-        }
+        adres.setStraat(
+                "Nieuwe Straat"
+        );
 
+        boolean adresGewijzigd =
+                adresDAO.update(
+                        adres
+                );
 
         System.out.println(
-                "\n--- Alle reizigers ---"
+                "Adres gewijzigd: " +
+                        adresGewijzigd
         );
 
-        List<Reiziger> alleReizigers =
-                reizigerDAO.findAll();
+        Adres gewijzigdAdres =
+                adresDAO.findById(
+                        9999
+                );
 
-        for (Reiziger reiziger : alleReizigers) {
-
-            System.out.println(reiziger);
-        }
+        System.out.println(
+                "Gewijzigd adres: " +
+                        gewijzigdAdres
+        );
 
 
         System.out.println(
                 "\n--- Reiziger wijzigen ---"
         );
 
-        reiziger1.setVoorletters("G.A.");
+        reiziger.setVoorletters(
+                "G.A."
+        );
 
         boolean reizigerGewijzigd =
-                reizigerDAO.update(reiziger1);
+                reizigerDAO.update(
+                        reiziger
+                );
 
         System.out.println(
-                "Reiziger gewijzigd: "
-                        + reizigerGewijzigd
+                "Reiziger gewijzigd: " +
+                        reizigerGewijzigd
         );
 
 
@@ -252,13 +228,63 @@ public class Main {
                 "\n--- Reiziger ophalen op ID ---"
         );
 
-        Reiziger opgehaaldeReiziger =
-                reizigerDAO.findById(100);
+        Reiziger gevondenReiziger =
+                reizigerDAO.findById(
+                        9999
+                );
 
         System.out.println(
-                "Opgehaalde reiziger: "
-                        + opgehaaldeReiziger
+                "Opgehaalde reiziger: " +
+                        gevondenReiziger
         );
+
+
+        System.out.println(
+                "\n--- Alle adressen ---"
+        );
+
+        List<Adres> adressen =
+                adresDAO.findAll();
+
+        for (Adres a : adressen) {
+
+            System.out.println(
+                    a
+            );
+        }
+
+
+        System.out.println(
+                "\n--- Alle reizigers ---"
+        );
+
+        List<Reiziger> reizigers =
+                reizigerDAO.findAll();
+
+        for (Reiziger r : reizigers) {
+
+            System.out.println(
+                    r
+            );
+        }
+
+
+
+        System.out.println(
+                "\n--- Reizigers zoeken op geboortedatum ---"
+        );
+
+        List<Reiziger> gevondenReizigers =
+                reizigerDAO.findByGbdatum(
+                        "2002-09-17"
+                );
+
+        for (Reiziger r : gevondenReizigers) {
+
+            System.out.println(
+                    r
+            );
+        }
 
 
         System.out.println(
@@ -266,18 +292,26 @@ public class Main {
         );
 
         boolean adresVerwijderd =
-                adresDAO.delete(adres1);
+                adresDAO.delete(
+                        adres
+                );
 
         System.out.println(
-                "Adres verwijderd: "
-                        + adresVerwijderd
+                "Adres verwijderd: " +
+                        adresVerwijderd
         );
 
         if (adresVerwijderd) {
 
-            reiziger1.setAdres(null);
-            adres1.setReiziger(null);
+            reiziger.setAdres(
+                    null
+            );
+
+            adres.setReiziger(
+                    null
+            );
         }
+
 
 
         System.out.println(
@@ -285,15 +319,35 @@ public class Main {
         );
 
         boolean reizigerVerwijderd =
-                reizigerDAO.delete(reiziger1);
+                reizigerDAO.delete(
+                        reiziger
+                );
 
         System.out.println(
-                "Reiziger verwijderd: "
-                        + reizigerVerwijderd
+                "Reiziger verwijderd: " +
+                        reizigerVerwijderd
         );
 
         System.out.println(
-                "\n---------- Einde Test AdresDAO -------------"
+                "\n--- Controle na verwijderen ---"
+        );
+
+        System.out.println(
+                "Adres 9999: " +
+                        adresDAO.findById(
+                                9999
+                        )
+        );
+
+        System.out.println(
+                "Reiziger 9999: " +
+                        reizigerDAO.findById(
+                                9999
+                        )
+        );
+
+        System.out.println(
+                "\n---------- Einde Test AdresDAO Hibernate -------------"
         );
     }
 }

@@ -2,6 +2,7 @@ package main.java.POJO;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
@@ -15,19 +16,33 @@ public class Adres {
     @Column(name = "adres_id")
     private int adres_id;
 
-    @Column(name = "postcode", nullable = false)
+    @Column(
+            name = "postcode",
+            nullable = false
+    )
     private String postcode;
 
-    @Column(name = "huisnummer", nullable = false)
+    @Column(
+            name = "huisnummer",
+            nullable = false
+    )
     private String huisnummer;
 
-    @Column(name = "straat", nullable = false)
+    @Column(
+            name = "straat",
+            nullable = false
+    )
     private String straat;
 
-    @Column(name = "woonplaats", nullable = false)
+    @Column(
+            name = "woonplaats",
+            nullable = false
+    )
     private String woonplaats;
 
-    @OneToOne
+    @OneToOne(
+            fetch = FetchType.EAGER
+    )
     @JoinColumn(
             name = "reiziger_id",
             unique = true,
@@ -131,8 +146,7 @@ public class Adres {
 
         if (reiziger != null) {
 
-            String naam =
-                    reiziger.getVoorletters();
+            String naam = reiziger.getVoorletters();
 
             if (reiziger.getTussenvoegsel() != null &&
                     !reiziger.getTussenvoegsel().isEmpty()) {

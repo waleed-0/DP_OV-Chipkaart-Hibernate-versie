@@ -1,7 +1,9 @@
 package main.java.POJO;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -16,19 +18,30 @@ public class Reiziger {
     @Column(name = "reiziger_id")
     private int reiziger_id;
 
-    @Column(name = "voorletters", nullable = false)
+    @Column(
+            name = "voorletters",
+            nullable = false
+    )
     private String voorletters;
 
     @Column(name = "tussenvoegsel")
     private String tussenvoegsel;
 
-    @Column(name = "achternaam", nullable = false)
+    @Column(
+            name = "achternaam",
+            nullable = false
+    )
     private String achternaam;
 
     @Column(name = "geboortedatum")
     private Date geboortedatum;
 
-    @OneToOne(mappedBy = "reiziger")
+    @OneToOne(
+            mappedBy = "reiziger",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.EAGER,
+            orphanRemoval = true
+    )
     private Adres adres;
 
     public Reiziger() {
@@ -115,8 +128,7 @@ public class Reiziger {
     @Override
     public String toString() {
 
-        String naam =
-                voorletters;
+        String naam = voorletters;
 
         if (tussenvoegsel != null &&
                 !tussenvoegsel.isEmpty()) {
@@ -130,8 +142,7 @@ public class Reiziger {
                 " " +
                         achternaam;
 
-        String adresInfo =
-                "";
+        String adresInfo = "";
 
         if (adres != null) {
 
