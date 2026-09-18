@@ -1,6 +1,7 @@
 package main.java.DAO;
 
 import main.java.POJO.Adres;
+import main.java.POJO.OVChipkaart;
 import main.java.POJO.Reiziger;
 
 import java.sql.Connection;
@@ -8,23 +9,41 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class ReizigerDAOPsql implements ReizigerDAO {
+public class ReizigerDAOPsql
+        implements ReizigerDAO {
 
     private Connection conn;
+
     private AdresDAO adao;
 
-    public ReizigerDAOPsql(Connection conn) {
+    private OVChipkaartDAO ovdao;
+
+    public ReizigerDAOPsql(
+            Connection conn) {
+
         this.conn = conn;
     }
 
-    public void setAdresDAO(AdresDAO adao) {
+    public void setAdresDAO(
+            AdresDAO adao) {
+
         this.adao = adao;
     }
 
+    public void setOVChipkaartDAO(
+            OVChipkaartDAO ovdao) {
+
+        this.ovdao = ovdao;
+    }
+
+
     @Override
-    public boolean save(Reiziger reiziger) {
+    public boolean save(
+            Reiziger reiziger) {
 
         if (reiziger == null) {
             return false;
@@ -71,22 +90,31 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                 return false;
             }
 
-            if (reiziger.getAdres() == null) {
-                return true;
+            /*
+             * Bestaande functionaliteit uit
+             * vorige opdracht behouden.
+             */
+            if (reiziger.getAdres() != null) {
+
+                if (adao == null) {
+                    return false;
+                }
+
+                reiziger.getAdres()
+                        .setReiziger(
+                                reiziger
+                        );
+
+                if (!adao.save(
+                        reiziger.getAdres()
+                )) {
+
+                    return false;
+                }
             }
 
-            reiziger.getAdres()
-                    .setReiziger(
-                            reiziger
-                    );
 
-            if (adao == null) {
-                return false;
-            }
-
-            return adao.save(
-                    reiziger.getAdres()
-            );
+            return true;
 
         } catch (SQLException e) {
 
@@ -96,8 +124,10 @@ public class ReizigerDAOPsql implements ReizigerDAO {
         }
     }
 
+
     @Override
-    public boolean update(Reiziger reiziger) {
+    public boolean update(
+            Reiziger reiziger) {
 
         if (reiziger == null) {
             return false;
@@ -146,22 +176,27 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                 return false;
             }
 
-            if (reiziger.getAdres() == null) {
-                return true;
+            if (reiziger.getAdres() != null) {
+
+                if (adao == null) {
+                    return false;
+                }
+
+                reiziger.getAdres()
+                        .setReiziger(
+                                reiziger
+                        );
+
+                if (!adao.update(
+                        reiziger.getAdres()
+                )) {
+
+                    return false;
+                }
             }
 
-            if (adao == null) {
-                return false;
-            }
 
-            reiziger.getAdres()
-                    .setReiziger(
-                            reiziger
-                    );
-
-            return adao.update(
-                    reiziger.getAdres()
-            );
+            return true;
 
         } catch (SQLException e) {
 
@@ -172,7 +207,8 @@ public class ReizigerDAOPsql implements ReizigerDAO {
     }
 
     @Override
-    public boolean delete(Reiziger reiziger) {
+    public boolean delete(
+            Reiziger reiziger) {
 
         if (reiziger == null) {
             return false;
@@ -195,7 +231,6 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                     return false;
                 }
             }
-
 
             String query =
                     "DELETE FROM reiziger " +
@@ -224,11 +259,18 @@ public class ReizigerDAOPsql implements ReizigerDAO {
     }
 
     @Override
-    public Reiziger findById(int id) {
+    public Reiziger findById(
+            int id) {
+
+        Reiziger reiziger =
+                null;
 
         String query =
-                "SELECT reiziger_id, voorletters, " +
-                        "tussenvoegsel, achternaam, geboortedatum " +
+                "SELECT reiziger_id, " +
+                        "voorletters, " +
+                        "tussenvoegsel, " +
+                        "achternaam, " +
+                        "geboortedatum " +
                         "FROM reiziger " +
                         "WHERE reiziger_id = ?";
 
@@ -245,7 +287,7 @@ public class ReizigerDAOPsql implements ReizigerDAO {
 
                 if (resultSet.next()) {
 
-                    Reiziger reiziger =
+                    reiziger =
                             new Reiziger(
                                     resultSet.getInt(
                                             "reiziger_id"
@@ -263,20 +305,33 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                                             "geboortedatum"
                                     )
                             );
+                }
+            }
 
-                    if (adao != null) {
+            if (reiziger != null) {
 
-                        Adres adres =
-                                adao.findByReiziger(
-                                        reiziger
-                                );
+                if (adao != null) {
 
-                        reiziger.setAdres(
-                                adres
-                        );
-                    }
+                    Adres adres =
+                            adao.findByReiziger(
+                                    reiziger
+                            );
 
-                    return reiziger;
+                    reiziger.setAdres(
+                            adres
+                    );
+                }
+
+                if (ovdao != null) {
+
+                    List<OVChipkaart> ovChipkaarten =
+                            ovdao.findByReiziger(
+                                    reiziger
+                            );
+
+                    reiziger.setOvChipkaarten(
+                            ovChipkaarten
+                    );
                 }
             }
 
@@ -285,8 +340,9 @@ public class ReizigerDAOPsql implements ReizigerDAO {
             e.printStackTrace();
         }
 
-        return null;
+        return reiziger;
     }
+
 
     @Override
     public List<Reiziger> findByGbdatum(
@@ -296,8 +352,11 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                 new ArrayList<>();
 
         String query =
-                "SELECT reiziger_id, voorletters, " +
-                        "tussenvoegsel, achternaam, geboortedatum " +
+                "SELECT reiziger_id, " +
+                        "voorletters, " +
+                        "tussenvoegsel, " +
+                        "achternaam, " +
+                        "geboortedatum " +
                         "FROM reiziger " +
                         "WHERE geboortedatum = ?";
 
@@ -335,20 +394,36 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                                     )
                             );
 
-                    if (adao != null) {
-
-                        Adres adres =
-                                adao.findByReiziger(
-                                        reiziger
-                                );
-
-                        reiziger.setAdres(
-                                adres
-                        );
-                    }
-
                     reizigers.add(
                             reiziger
+                    );
+                }
+            }
+
+            for (Reiziger reiziger :
+                    reizigers) {
+
+                if (adao != null) {
+
+                    Adres adres =
+                            adao.findByReiziger(
+                                    reiziger
+                            );
+
+                    reiziger.setAdres(
+                            adres
+                    );
+                }
+
+                if (ovdao != null) {
+
+                    List<OVChipkaart> ovChipkaarten =
+                            ovdao.findByReiziger(
+                                    reiziger
+                            );
+
+                    reiziger.setOvChipkaarten(
+                            ovChipkaarten
                     );
                 }
             }
@@ -367,9 +442,15 @@ public class ReizigerDAOPsql implements ReizigerDAO {
         List<Reiziger> reizigers =
                 new ArrayList<>();
 
+        Map<Integer, Reiziger> reizigerMap =
+                new HashMap<>();
+
         String query =
-                "SELECT reiziger_id, voorletters, " +
-                        "tussenvoegsel, achternaam, geboortedatum " +
+                "SELECT reiziger_id, " +
+                        "voorletters, " +
+                        "tussenvoegsel, " +
+                        "achternaam, " +
+                        "geboortedatum " +
                         "FROM reiziger";
 
         try (PreparedStatement statement =
@@ -399,7 +480,29 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                                 )
                         );
 
-                if (adao != null) {
+                reizigers.add(
+                        reiziger
+                );
+
+                reizigerMap.put(
+                        reiziger.getId(),
+                        reiziger
+                );
+            }
+
+        } catch (SQLException e) {
+
+            e.printStackTrace();
+
+            return reizigers;
+        }
+
+        if (adao != null) {
+
+            try {
+
+                for (Reiziger reiziger :
+                        reizigers) {
 
                     Adres adres =
                             adao.findByReiziger(
@@ -411,14 +514,54 @@ public class ReizigerDAOPsql implements ReizigerDAO {
                     );
                 }
 
-                reizigers.add(
-                        reiziger
-                );
+            } catch (SQLException e) {
+
+                e.printStackTrace();
             }
+        }
 
-        } catch (SQLException e) {
 
-            e.printStackTrace();
+        if (ovdao != null) {
+
+            try {
+
+                List<OVChipkaart> alleKaarten =
+                        ovdao.findAll();
+
+                for (OVChipkaart kaart :
+                        alleKaarten) {
+
+                    if (kaart.getReiziger()
+                            == null) {
+
+                        continue;
+                    }
+
+                    int reizigerId =
+                            kaart.getReiziger()
+                                    .getId();
+
+                    Reiziger reiziger =
+                            reizigerMap.get(
+                                    reizigerId
+                            );
+
+                    if (reiziger != null) {
+
+                        kaart.setReiziger(
+                                reiziger
+                        );
+
+                        reiziger.voegToeOVChipkaart(
+                                kaart
+                        );
+                    }
+                }
+
+            } catch (SQLException e) {
+
+                e.printStackTrace();
+            }
         }
 
         return reizigers;

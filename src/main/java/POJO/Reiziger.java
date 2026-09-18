@@ -1,35 +1,22 @@
 package main.java.POJO;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 
-@Entity
-@Table(name = "reiziger")
 public class Reiziger {
 
-    @Id
-    @Column(name = "reiziger_id")
     private int reiziger_id;
-
-    @Column(name = "voorletters", nullable = false)
     private String voorletters;
-
-    @Column(name = "tussenvoegsel")
     private String tussenvoegsel;
-
-    @Column(name = "achternaam", nullable = false)
     private String achternaam;
-
-    @Column(name = "geboortedatum")
     private Date geboortedatum;
 
-    @OneToOne(mappedBy = "reiziger")
     private Adres adres;
+
+
+    private List<OVChipkaart> ovChipkaarten =
+            new ArrayList<>();
 
     public Reiziger() {
     }
@@ -112,6 +99,81 @@ public class Reiziger {
         this.adres = adres;
     }
 
+
+    public List<OVChipkaart> getOvChipkaarten() {
+        return ovChipkaarten;
+    }
+
+    public void setOvChipkaarten(
+            List<OVChipkaart> ovChipkaarten) {
+
+        this.ovChipkaarten =
+                new ArrayList<>();
+
+        if (ovChipkaarten != null) {
+
+            for (OVChipkaart ovChipkaart :
+                    ovChipkaarten) {
+
+                voegToeOVChipkaart(
+                        ovChipkaart
+                );
+            }
+        }
+    }
+
+    public boolean voegToeOVChipkaart(
+            OVChipkaart ovChipkaart) {
+
+        if (ovChipkaart == null) {
+            return false;
+        }
+
+        if (ovChipkaarten.contains(
+                ovChipkaart)) {
+
+            return false;
+        }
+
+        boolean toegevoegd =
+                ovChipkaarten.add(
+                        ovChipkaart
+                );
+
+        if (toegevoegd &&
+                ovChipkaart.getReiziger() != this) {
+
+            ovChipkaart.setReiziger(
+                    this
+            );
+        }
+
+        return toegevoegd;
+    }
+
+    public boolean verwijderOVChipkaart(
+            OVChipkaart ovChipkaart) {
+
+        if (ovChipkaart == null) {
+            return false;
+        }
+
+        boolean verwijderd =
+                ovChipkaarten.remove(
+                        ovChipkaart
+                );
+
+        if (verwijderd &&
+                ovChipkaart.getReiziger() == this) {
+
+            ovChipkaart.setReiziger(
+                    null
+            );
+        }
+
+        return verwijderd;
+    }
+
     @Override
     public String toString() {
 
@@ -130,6 +192,7 @@ public class Reiziger {
                 " " +
                         achternaam;
 
+
         String adresInfo =
                 "";
 
@@ -145,6 +208,50 @@ public class Reiziger {
                             "}";
         }
 
+
+        StringBuilder kaartenInfo =
+                new StringBuilder();
+
+        if (ovChipkaarten != null &&
+                !ovChipkaarten.isEmpty()) {
+
+            kaartenInfo.append(
+                    ", OVChipkaarten ["
+            );
+
+            for (int i = 0;
+                 i < ovChipkaarten.size();
+                 i++) {
+
+                OVChipkaart kaart =
+                        ovChipkaarten.get(i);
+
+                kaartenInfo.append(
+                        "OVChipkaart {#" +
+                                kaart.getKaart_nummer() +
+                                ", geldig tot " +
+                                kaart.getGeldig_tot() +
+                                ", klasse " +
+                                kaart.getKlasse() +
+                                ", saldo " +
+                                kaart.getSaldo() +
+                                "}"
+                );
+
+                if (i <
+                        ovChipkaarten.size() - 1) {
+
+                    kaartenInfo.append(
+                            ", "
+                    );
+                }
+            }
+
+            kaartenInfo.append(
+                    "]"
+            );
+        }
+
         return "Reiziger {#" +
                 reiziger_id +
                 " " +
@@ -152,6 +259,7 @@ public class Reiziger {
                 ", geb. " +
                 geboortedatum +
                 adresInfo +
+                kaartenInfo +
                 "}";
     }
 }
