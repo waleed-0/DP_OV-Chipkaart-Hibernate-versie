@@ -65,6 +65,7 @@ public class Adres {
     }
 
 
+
     public int getId() {
 
         return adres_id;
@@ -101,7 +102,6 @@ public class Adres {
         this.postcode =
                 postcode;
     }
-
 
     public String getHuisnummer() {
 
@@ -141,7 +141,6 @@ public class Adres {
                 woonplaats;
     }
 
-
     public Reiziger getReiziger() {
 
         return reiziger;
@@ -176,6 +175,7 @@ public class Adres {
             naam +=
                     " " +
                             reiziger.getAchternaam();
+
 
             reizigerInfo =
                     ", Reiziger {#" +

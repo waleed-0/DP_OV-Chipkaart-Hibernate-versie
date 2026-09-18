@@ -56,6 +56,7 @@ public class OVChipkaart {
                 reiziger;
     }
 
+
     public int getKaart_nummer() {
 
         return kaart_nummer;
@@ -67,6 +68,7 @@ public class OVChipkaart {
         this.kaart_nummer =
                 kaart_nummer;
     }
+
 
     public LocalDate getGeldig_tot() {
 
@@ -80,6 +82,7 @@ public class OVChipkaart {
                 geldig_tot;
     }
 
+
     public int getKlasse() {
 
         return klasse;
@@ -91,6 +94,7 @@ public class OVChipkaart {
         this.klasse =
                 klasse;
     }
+
 
     public double getSaldo() {
 
@@ -117,13 +121,14 @@ public class OVChipkaart {
                 reiziger;
     }
 
-
     @Override
     public String toString() {
 
         String reizigerInfo =
                 "";
+
         if (reiziger != null) {
+
 
             String naam =
                     reiziger.getVoorletters();
@@ -145,8 +150,11 @@ public class OVChipkaart {
                             reiziger.getId() +
                             " " +
                             naam +
+                            ", geb. " +
+                            reiziger.getGeboortedatum() +
                             "}";
         }
+
 
         return "OVChipkaart {#" +
                 kaart_nummer +

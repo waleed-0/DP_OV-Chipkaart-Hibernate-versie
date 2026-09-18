@@ -20,6 +20,7 @@ public class ReizigerDAOPsql
 
     private AdresDAO adao;
 
+
     private OVChipkaartDAO ovdao;
 
     public ReizigerDAOPsql(
@@ -39,7 +40,6 @@ public class ReizigerDAOPsql
 
         this.ovdao = ovdao;
     }
-
 
     @Override
     public boolean save(
@@ -206,6 +206,7 @@ public class ReizigerDAOPsql
         }
     }
 
+
     @Override
     public boolean delete(
             Reiziger reiziger) {
@@ -257,6 +258,7 @@ public class ReizigerDAOPsql
             return false;
         }
     }
+
 
     @Override
     public Reiziger findById(
@@ -520,7 +522,6 @@ public class ReizigerDAOPsql
             }
         }
 
-
         if (ovdao != null) {
 
             try {
@@ -547,6 +548,7 @@ public class ReizigerDAOPsql
                             );
 
                     if (reiziger != null) {
+
 
                         kaart.setReiziger(
                                 reiziger

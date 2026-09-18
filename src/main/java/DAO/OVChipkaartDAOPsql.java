@@ -85,7 +85,6 @@ public class OVChipkaartDAOPsql
         }
     }
 
-
     @Override
     public boolean update(
             OVChipkaart ovChipkaart)
@@ -123,7 +122,11 @@ public class OVChipkaartDAOPsql
                     ovChipkaart.getSaldo()
             );
 
-
+            /*
+             * Alleen reiziger_id aanpassen.
+             *
+             * GEEN reizigerDAO.update().
+             */
             if (ovChipkaart.getReiziger() != null) {
 
                 statement.setInt(
@@ -181,6 +184,7 @@ public class OVChipkaartDAOPsql
             return result > 0;
         }
     }
+
 
     @Override
     public List<OVChipkaart> findByReiziger(
@@ -345,6 +349,7 @@ public class OVChipkaartDAOPsql
                                 saldo,
                                 reiziger
                         );
+
 
                 if (reiziger != null) {
 
