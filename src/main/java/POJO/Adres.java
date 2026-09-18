@@ -1,15 +1,54 @@
 package main.java.POJO;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "adres")
 public class Adres {
 
+    @Id
+    @Column(name = "adres_id")
     private int adres_id;
+
+    @Column(
+            name = "postcode",
+            nullable = false
+    )
     private String postcode;
+
+    @Column(
+            name = "huisnummer",
+            nullable = false
+    )
     private String huisnummer;
+
+    @Column(
+            name = "straat",
+            nullable = false
+    )
     private String straat;
+
+    @Column(
+            name = "woonplaats",
+            nullable = false
+    )
     private String woonplaats;
 
+    @OneToOne(
+            fetch = FetchType.LAZY
+    )
+    @JoinColumn(
+            name = "reiziger_id",
+            unique = true,
+            nullable = false
+    )
     private Reiziger reiziger;
-
 
     public Adres() {
     }
@@ -64,8 +103,6 @@ public class Adres {
                 reiziger;
     }
 
-
-
     public int getId() {
 
         return adres_id;
@@ -89,7 +126,6 @@ public class Adres {
         this.adres_id =
                 adres_id;
     }
-
 
     public String getPostcode() {
 
@@ -115,7 +151,6 @@ public class Adres {
                 huisnummer;
     }
 
-
     public String getStraat() {
 
         return straat;
@@ -127,7 +162,6 @@ public class Adres {
         this.straat =
                 straat;
     }
-
 
     public String getWoonplaats() {
 
@@ -175,7 +209,6 @@ public class Adres {
             naam +=
                     " " +
                             reiziger.getAchternaam();
-
 
             reizigerInfo =
                     ", Reiziger {#" +

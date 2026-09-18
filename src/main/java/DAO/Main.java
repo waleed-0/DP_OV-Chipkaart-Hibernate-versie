@@ -1,33 +1,16 @@
 package main.java.DAO;
 
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
+
 import main.java.POJO.OVChipkaart;
 import main.java.POJO.Reiziger;
 
-import java.sql.Connection;
 import java.sql.Date;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
 public class Main {
-
-    private static final String Url =
-            "jdbc:postgresql://localhost:5432/ovchip";
-
-    private static final String User =
-            "postgres";
-
-    private static final String Password =
-            "0000";
-
-
-    /*
-     * ==========================================
-     * P4 TEST-ID'S
-     * ==========================================
-     */
 
     private static final int TEST_REIZIGER_ID =
             100;
@@ -39,385 +22,107 @@ public class Main {
             654321;
 
 
-    /*
-     * ==========================================
-     * MAIN
-     * ==========================================
-     */
-
     public static void main(String[] args) {
 
-        Connection conn =
-                getConnection();
-
-        if (conn == null) {
-
-            System.out.println(
-                    "Er is een fout opgetreden tijdens " +
-                            "het maken van de databaseverbinding."
-            );
-
-            return;
-        }
+        EntityManagerFactory emf =
+                null;
 
         try {
 
-            /*
-             * ==========================================
-             * P4 DAO'S AANMAKEN
-             * ==========================================
-             */
-
-            ReizigerDAOPsql reizigerDAO =
-                    new ReizigerDAOPsql(
-                            conn
-                    );
-
-            OVChipkaartDAOPsql ovChipkaartDAO =
-                    new OVChipkaartDAOPsql(
-                            conn
+            emf =
+                    Persistence.createEntityManagerFactory(
+                            "ovchip"
                     );
 
 
-            /*
-             * ==========================================
-             * P4 DAO'S KOPPELEN
-             * ==========================================
-             *
-             * ReizigerDAOPsql gebruikt
-             * OVChipkaartDAO om bij het ophalen
-             * van een Reiziger ook zijn
-             * OVChipkaarten te koppelen.
-             */
+            ReizigerDAOHibernate reizigerDAO =
+                    new ReizigerDAOHibernate(
+                            emf
+                    );
 
-            reizigerDAO.setOVChipkaartDAO(
-                    ovChipkaartDAO
-            );
+            OVChipkaartDAOHibernate ovChipkaartDAO =
+                    new OVChipkaartDAOHibernate(
+                            emf
+                    );
 
 
-            /*
-             * ==========================================
-             * OUDE P4-TESTDATA OPRUIMEN
-             * ==========================================
-             */
-
-            verwijderOudeP4TestData(
-                    conn
-            );
-
-
-            /*
-             * ==========================================
-             * P4 TEST UITVOEREN
-             * ==========================================
-             */
-
-            testOVChipkaartDAO(
+            testP4H(
                     reizigerDAO,
                     ovChipkaartDAO
             );
 
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
 
             System.out.println(
-                    "Er is een databasefout opgetreden."
+                    "Er is een fout opgetreden tijdens de P4H-test."
             );
 
             e.printStackTrace();
 
         } finally {
 
-            closeConnection(
-                    conn
-            );
-        }
-    }
+            if (emf != null &&
+                    emf.isOpen()) {
 
-
-    /*
-     * ==========================================
-     * DATABASEVERBINDING OPENEN
-     * ==========================================
-     */
-
-    private static Connection getConnection() {
-
-        Connection connection =
-                null;
-
-        try {
-
-            connection =
-                    DriverManager.getConnection(
-                            Url,
-                            User,
-                            Password
-                    );
-
-            System.out.println(
-                    "Databaseverbinding is ok."
-            );
-
-        } catch (SQLException e) {
-
-            System.out.println(
-                    "Databaseverbinding kon niet worden gemaakt."
-            );
-
-            e.printStackTrace();
-        }
-
-        return connection;
-    }
-
-
-    /*
-     * ==========================================
-     * DATABASEVERBINDING SLUITEN
-     * ==========================================
-     */
-
-    private static void closeConnection(
-            Connection connection) {
-
-        if (connection != null) {
-
-            try {
-
-                if (!connection.isClosed()) {
-
-                    connection.close();
-
-                    System.out.println(
-                            "Databaseverbinding gesloten."
-                    );
-                }
-
-            } catch (SQLException e) {
-
-                e.printStackTrace();
-            }
-        }
-    }
-
-
-    /*
-     * ==========================================
-     * OUDE P4-TESTDATA VERWIJDEREN
-     * ==========================================
-     *
-     * Eerst verwijderen we OVChipkaarten.
-     *
-     * Daarna verwijderen we de testreiziger.
-     *
-     * Dit is nodig vanwege de foreign key:
-     *
-     * ov_chipkaart.reiziger_id
-     *          ->
-     * reiziger.reiziger_id
-     */
-
-    private static void verwijderOudeP4TestData(
-            Connection conn)
-            throws SQLException {
-
-        System.out.println(
-                "\n--- Oude P4-testdata controleren ---"
-        );
-
-
-        /*
-         * ==========================================
-         * 1. TESTKAARTEN VERWIJDEREN
-         * ==========================================
-         */
-
-        String deleteKaarten =
-                "DELETE FROM ov_chipkaart " +
-                        "WHERE kaart_nummer = ? " +
-                        "OR kaart_nummer = ?";
-
-
-        try (PreparedStatement statement =
-                     conn.prepareStatement(
-                             deleteKaarten
-                     )) {
-
-            statement.setInt(
-                    1,
-                    TEST_KAART_ID_1
-            );
-
-            statement.setInt(
-                    2,
-                    TEST_KAART_ID_2
-            );
-
-            int aantalVerwijderd =
-                    statement.executeUpdate();
-
-            if (aantalVerwijderd > 0) {
+                emf.close();
 
                 System.out.println(
-                        aantalVerwijderd +
-                                " oude test-OVChipkaart(en) verwijderd."
+                        "\nEntityManagerFactory gesloten."
                 );
             }
         }
-
-
-        /*
-         * ==========================================
-         * 2. ALLE KAARTEN VAN TESTREIZIGER
-         *    VERWIJDEREN
-         * ==========================================
-         *
-         * Extra beveiliging voor het geval
-         * een eerdere test andere kaarten
-         * aan Reiziger 100 heeft gekoppeld.
-         */
-
-        String deleteKaartenVanReiziger =
-                "DELETE FROM ov_chipkaart " +
-                        "WHERE reiziger_id = ?";
-
-
-        try (PreparedStatement statement =
-                     conn.prepareStatement(
-                             deleteKaartenVanReiziger
-                     )) {
-
-            statement.setInt(
-                    1,
-                    TEST_REIZIGER_ID
-            );
-
-            statement.executeUpdate();
-        }
-
-
-        /*
-         * ==========================================
-         * 3. EVENTUEEL ADRES VAN TESTREIZIGER
-         *    VERWIJDEREN
-         * ==========================================
-         *
-         * Main test Adres niet meer.
-         *
-         * Deze DELETE is alleen een beveiliging
-         * voor oude testdata uit eerdere runs.
-         *
-         * Anders kan de foreign key van adres
-         * verhinderen dat Reiziger 100 wordt
-         * verwijderd.
-         */
-
-        String deleteAdres =
-                "DELETE FROM adres " +
-                        "WHERE reiziger_id = ?";
-
-
-        try (PreparedStatement statement =
-                     conn.prepareStatement(
-                             deleteAdres
-                     )) {
-
-            statement.setInt(
-                    1,
-                    TEST_REIZIGER_ID
-            );
-
-            statement.executeUpdate();
-        }
-
-
-        /*
-         * ==========================================
-         * 4. TESTREIZIGER VERWIJDEREN
-         * ==========================================
-         */
-
-        String deleteReiziger =
-                "DELETE FROM reiziger " +
-                        "WHERE reiziger_id = ?";
-
-
-        try (PreparedStatement statement =
-                     conn.prepareStatement(
-                             deleteReiziger
-                     )) {
-
-            statement.setInt(
-                    1,
-                    TEST_REIZIGER_ID
-            );
-
-            int aantalVerwijderd =
-                    statement.executeUpdate();
-
-            if (aantalVerwijderd > 0) {
-
-                System.out.println(
-                        "Oude P4-testreiziger met ID " +
-                                TEST_REIZIGER_ID +
-                                " verwijderd."
-                );
-            }
-        }
-
-
-        System.out.println(
-                "Database is klaar voor de P4-test."
-        );
     }
 
 
-    /*
-     * ==========================================
-     * P4
-     * TEST OVCHIPKAARTDAO
-     * ==========================================
-     *
-     * Deze methode test uitsluitend P4:
-     *
-     * - Reiziger opslaan
-     * - één-op-veel-relatie
-     * - bidirectionele relatie
-     * - voegToeOVChipkaart()
-     * - OVChipkaart save()
-     * - findByReiziger()
-     * - findAll()
-     * - update()
-     * - Reiziger opnieuw ophalen
-     * - OVChipkaarten bij Reiziger
-     * - delete()
-     * - verwijderOVChipkaart()
-     */
-
-    public static void testOVChipkaartDAO(
+    public static void testP4H(
             ReizigerDAO reizigerDAO,
             OVChipkaartDAO ovChipkaartDAO)
-            throws SQLException {
+            throws Exception {
 
         System.out.println(
                 "\n=========================================="
         );
 
-        System.out.println(
-                "        P4 - TEST OVCHIPKAARTDAO"
-        );
-
-        System.out.println(
-                "=========================================="
-        );
+        Reiziger bestaandeReiziger =
+                reizigerDAO.findById(
+                        TEST_REIZIGER_ID
+                );
 
 
-        /*
-         * ==========================================
-         * 1. TESTREIZIGER MAKEN
-         * ==========================================
-         */
+        if (bestaandeReiziger != null) {
+
+            List<OVChipkaart> bestaandeKaarten =
+                    ovChipkaartDAO.findByReiziger(
+                            bestaandeReiziger
+                    );
+
+
+            for (OVChipkaart kaart :
+                    bestaandeKaarten) {
+
+                ovChipkaartDAO.delete(
+                        kaart
+                );
+            }
+
+
+            reizigerDAO.delete(
+                    bestaandeReiziger
+            );
+
+
+            System.out.println(
+                    "Oude P4H-testdata verwijderd."
+            );
+
+        } else {
+
+            System.out.println(
+                    "Geen oude P4H-testreiziger gevonden."
+            );
+        }
+
 
         Reiziger reiziger =
                 new Reiziger(
@@ -431,41 +136,44 @@ public class Main {
                 );
 
 
-        /*
-         * ==========================================
-         * 2. REIZIGER OPSLAAN
-         * ==========================================
-         */
+        System.out.println(
+                "\n--- Nieuwe Reiziger ---"
+        );
 
         System.out.println(
-                "\n--- Reiziger opslaan ---"
+                reiziger
         );
+
+
+
+        System.out.println(
+                "\n--- Reiziger opslaan met Hibernate ---"
+        );
+
 
         boolean reizigerOpgeslagen =
                 reizigerDAO.save(
                         reiziger
                 );
 
+
         System.out.println(
                 "Reiziger opgeslagen: " +
                         reizigerOpgeslagen
         );
 
+
         if (!reizigerOpgeslagen) {
 
             System.out.println(
-                    "P4-test gestopt: Reiziger kon niet worden opgeslagen."
+                    "P4H-test gestopt: " +
+                            "Reiziger kon niet worden opgeslagen."
             );
 
             return;
         }
 
 
-        /*
-         * ==========================================
-         * 3. TWEE OVCHIPKAARTEN MAKEN
-         * ==========================================
-         */
 
         OVChipkaart kaart1 =
                 new OVChipkaart(
@@ -476,8 +184,7 @@ public class Main {
                                 31
                         ),
                         2,
-                        25.50,
-                        reiziger
+                        25.50
                 );
 
 
@@ -490,16 +197,9 @@ public class Main {
                                 30
                         ),
                         1,
-                        50.00,
-                        reiziger
+                        50.00
                 );
 
-
-        /*
-         * ==========================================
-         * 4. BIDIRECTIONELE RELATIE MAKEN
-         * ==========================================
-         */
 
         System.out.println(
                 "\n--- Bidirectionele relatie maken ---"
@@ -519,18 +219,18 @@ public class Main {
 
 
         System.out.println(
-                "Kaart 1 toegevoegd aan Reiziger: " +
+                "Kaart 1 toegevoegd: " +
                         kaart1Toegevoegd
         );
 
         System.out.println(
-                "Kaart 2 toegevoegd aan Reiziger: " +
+                "Kaart 2 toegevoegd: " +
                         kaart2Toegevoegd
         );
 
 
         System.out.println(
-                "Aantal kaarten in Reiziger-object: " +
+                "Aantal kaarten bij Reiziger: " +
                         reiziger
                                 .getOvChipkaarten()
                                 .size()
@@ -553,14 +253,9 @@ public class Main {
         );
 
 
-        /*
-         * ==========================================
-         * 5. OVCHIPKAARTEN OPSLAAN
-         * ==========================================
-         */
 
         System.out.println(
-                "\n--- OVChipkaarten opslaan ---"
+                "\n--- OVChipkaarten opslaan met Hibernate ---"
         );
 
 
@@ -581,17 +276,13 @@ public class Main {
                         kaart1Opgeslagen
         );
 
+
         System.out.println(
                 "Kaart 2 opgeslagen: " +
                         kaart2Opgeslagen
         );
 
 
-        /*
-         * ==========================================
-         * 6. FIND BY REIZIGER
-         * ==========================================
-         */
 
         System.out.println(
                 "\n--- OVChipkaarten ophalen via Reiziger ---"
@@ -613,11 +304,12 @@ public class Main {
         }
 
 
-        /*
-         * ==========================================
-         * 7. FIND ALL OVCHIPKAARTEN
-         * ==========================================
-         */
+        System.out.println(
+                "Aantal gevonden kaarten: " +
+                        kaartenVanReiziger.size()
+        );
+
+
 
         System.out.println(
                 "\n--- Alle OVChipkaarten ---"
@@ -636,12 +328,6 @@ public class Main {
             );
         }
 
-
-        /*
-         * ==========================================
-         * 8. OVCHIPKAART WIJZIGEN
-         * ==========================================
-         */
 
         System.out.println(
                 "\n--- OVChipkaart wijzigen ---"
@@ -679,11 +365,6 @@ public class Main {
         );
 
 
-        /*
-         * ==========================================
-         * 9. UPDATE CONTROLEREN
-         * ==========================================
-         */
 
         System.out.println(
                 "\n--- Wijziging controleren ---"
@@ -705,18 +386,9 @@ public class Main {
         }
 
 
-        /*
-         * ==========================================
-         * 10. REIZIGER OPNIEUW OPHALEN
-         * ==========================================
-         *
-         * Hiermee controleren we dat de
-         * één-op-veel-relatie ook vanuit
-         * Reiziger correct wordt opgebouwd.
-         */
 
         System.out.println(
-                "\n--- Reiziger ophalen inclusief OVChipkaarten ---"
+                "\n--- Reiziger opnieuw ophalen ---"
         );
 
 
@@ -734,26 +406,57 @@ public class Main {
         if (reizigerUitDatabase != null) {
 
             System.out.println(
-                    "Aantal OVChipkaarten: " +
+                    "Aantal OVChipkaarten vanuit Reiziger: " +
                             reizigerUitDatabase
                                     .getOvChipkaarten()
                                     .size()
             );
+
+
+            for (OVChipkaart kaart :
+                    reizigerUitDatabase
+                            .getOvChipkaarten()) {
+
+                System.out.println(
+                        "  -> " +
+                                kaart
+                );
+            }
         }
 
 
-        /*
-         * ==========================================
-         * 11. ALLE REIZIGERS
-         * ==========================================
-         *
-         * Hiermee controleren we dat ook
-         * findAll() van ReizigerDAO de
-         * OVChipkaarten correct koppelt.
-         */
+        System.out.println(
+                "\n--- Bidirectionele relatie controleren ---"
+        );
+
+
+        if (reizigerUitDatabase != null) {
+
+            for (OVChipkaart kaart :
+                    reizigerUitDatabase
+                            .getOvChipkaarten()) {
+
+                boolean correct =
+                        kaart.getReiziger() != null &&
+                                kaart.getReiziger().getId() ==
+                                        reizigerUitDatabase.getId();
+
+
+                System.out.println(
+                        "Kaart #" +
+                                kaart.getKaart_nummer() +
+                                " verwijst terug naar Reiziger #" +
+                                reizigerUitDatabase.getId() +
+                                ": " +
+                                correct
+                );
+            }
+        }
+
+
 
         System.out.println(
-                "\n--- Alle Reizigers inclusief OVChipkaarten ---"
+                "\n--- Alle Reizigers ---"
         );
 
 
@@ -770,11 +473,6 @@ public class Main {
         }
 
 
-        /*
-         * ==========================================
-         * 12. KAART 1 VERWIJDEREN
-         * ==========================================
-         */
 
         System.out.println(
                 "\n--- OVChipkaart 1 verwijderen ---"
@@ -808,12 +506,6 @@ public class Main {
         }
 
 
-        /*
-         * ==========================================
-         * 13. KAART 2 VERWIJDEREN
-         * ==========================================
-         */
-
         System.out.println(
                 "\n--- OVChipkaart 2 verwijderen ---"
         );
@@ -846,14 +538,9 @@ public class Main {
         }
 
 
-        /*
-         * ==========================================
-         * 14. DELETE CONTROLEREN
-         * ==========================================
-         */
 
         System.out.println(
-                "\n--- Controleren of OVChipkaarten verwijderd zijn ---"
+                "\n--- Verwijdering controleren ---"
         );
 
 
@@ -864,24 +551,18 @@ public class Main {
 
 
         System.out.println(
-                "Aantal kaarten in database voor testreiziger: " +
+                "Aantal kaarten in database: " +
                         kaartenNaDelete.size()
         );
 
 
         System.out.println(
-                "Aantal kaarten in Java Reiziger-object: " +
+                "Aantal kaarten in Java-object: " +
                         reiziger
                                 .getOvChipkaarten()
                                 .size()
         );
 
-
-        /*
-         * ==========================================
-         * 15. TESTREIZIGER VERWIJDEREN
-         * ==========================================
-         */
 
         System.out.println(
                 "\n--- Testreiziger verwijderen ---"
@@ -898,13 +579,6 @@ public class Main {
                 "Reiziger verwijderd: " +
                         reizigerVerwijderd
         );
-
-
-        /*
-         * ==========================================
-         * 16. DELETE REIZIGER CONTROLEREN
-         * ==========================================
-         */
 
         System.out.println(
                 "\n--- Controleren of Reiziger verwijderd is ---"
@@ -923,18 +597,13 @@ public class Main {
         );
 
 
-        /*
-         * ==========================================
-         * EINDE P4
-         * ==========================================
-         */
 
         System.out.println(
                 "\n=========================================="
         );
 
         System.out.println(
-                "      EINDE P4 OVCHIPKAART TEST"
+                "          EINDE P4H TEST"
         );
 
         System.out.println(

@@ -1,14 +1,48 @@
 package main.java.POJO;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
 import java.time.LocalDate;
 
+@Entity
+@Table(name = "ov_chipkaart")
 public class OVChipkaart {
 
+    @Id
+    @Column(name = "kaart_nummer")
     private int kaart_nummer;
+
+    @Column(
+            name = "geldig_tot",
+            nullable = false
+    )
     private LocalDate geldig_tot;
+
+    @Column(
+            name = "klasse",
+            nullable = false
+    )
     private int klasse;
+
+    @Column(
+            name = "saldo",
+            nullable = false
+    )
     private double saldo;
 
+    @ManyToOne(
+            fetch = FetchType.LAZY
+    )
+    @JoinColumn(
+            name = "reiziger_id",
+            nullable = false
+    )
     private Reiziger reiziger;
 
     public OVChipkaart() {
@@ -56,7 +90,6 @@ public class OVChipkaart {
                 reiziger;
     }
 
-
     public int getKaart_nummer() {
 
         return kaart_nummer;
@@ -68,7 +101,6 @@ public class OVChipkaart {
         this.kaart_nummer =
                 kaart_nummer;
     }
-
 
     public LocalDate getGeldig_tot() {
 
@@ -82,7 +114,6 @@ public class OVChipkaart {
                 geldig_tot;
     }
 
-
     public int getKlasse() {
 
         return klasse;
@@ -95,7 +126,6 @@ public class OVChipkaart {
                 klasse;
     }
 
-
     public double getSaldo() {
 
         return saldo;
@@ -107,7 +137,6 @@ public class OVChipkaart {
         this.saldo =
                 saldo;
     }
-
 
     public Reiziger getReiziger() {
 
@@ -128,7 +157,6 @@ public class OVChipkaart {
                 "";
 
         if (reiziger != null) {
-
 
             String naam =
                     reiziger.getVoorletters();
@@ -154,7 +182,6 @@ public class OVChipkaart {
                             reiziger.getGeboortedatum() +
                             "}";
         }
-
 
         return "OVChipkaart {#" +
                 kaart_nummer +

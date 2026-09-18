@@ -2,22 +2,27 @@ package main.java.DAO;
 
 import main.java.POJO.Adres;
 import main.java.POJO.Reiziger;
-import org.postgresql.util.PSQLException;
 
 import java.sql.SQLException;
 import java.util.List;
 
 public interface AdresDAO {
 
-    boolean save(Adres adres) throws SQLException;
+    boolean save(Adres adres)
+            throws SQLException;
 
-    boolean update(Adres adres)throws SQLException;
+    boolean update(Adres adres)
+            throws SQLException;
 
-    boolean delete(Adres adres)throws SQLException;
+    boolean delete(Adres adres)
+            throws SQLException;
 
-    Adres findById(int id)throws SQLException;
+    Adres findById(int id)
+            throws SQLException;
 
-    Adres findByReiziger(Reiziger reiziger)throws SQLException;
+    Adres findByReiziger(Reiziger reiziger)
+            throws SQLException;
 
-    List<Adres> findAll()throws SQLException;
+    List<Adres> findAll()
+            throws SQLException;
 }
